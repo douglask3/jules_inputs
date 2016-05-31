@@ -2,11 +2,11 @@
 
 ## Commands
 		
-	./runNotepad.sh
+	./runNotebook.sh
 
 Opens dir tree for all notebooks
 
-	./runNotepad.sh regrid_clim.ipynb
+	./runNotebook.sh regrid_clim.ipynb
 
 Open ipython notebook for regridding climate data
 
