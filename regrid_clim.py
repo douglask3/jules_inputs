@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import iris.plot as iplt
 import numpy as np
 from os import listdir
-import pdb
 
 # Define paths and parameters
 root_dir = "data/"
