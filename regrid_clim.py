@@ -5,7 +5,8 @@ import iris
 import matplotlib.pyplot as plt
 import iris.plot as iplt
 import numpy as np
-from os import listdir
+from os import listdir, getcwd
+from pdb import set_trace
 
 # Define paths and parameters
 root_dir = "data/"
@@ -46,14 +47,13 @@ for input_file in listdir(root_dir + clim_dir):
     if date not in drive_date: 
         drive_date.append(date)
         fname = '%vv'.join(output_file.split(cube.var_name))
-        fnames.append(fname)
+        fnames.append(fname) 
 
-    input_data = cube[0]
-    output_data = input_data.regrid( mask, iris.analysis.Nearest())
+    output_data = cube.regrid( mask, iris.analysis.Nearest())
     iris.save(output_data, output_file)
 
 
-drive_info = '\n'.join("'" + a + "', '" + b + "'" for a,b in zip(fnames, drive_date))
+drive_info = '\n'.join("'" + getcwd() + '/' + a + "', '" + b + "'" for a,b in zip(fnames, drive_date))
 
 drive_file = open("outputs/drive_file.txt", "w")
 drive_file.write(drive_info)
