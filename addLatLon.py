@@ -13,6 +13,7 @@ input = Dataset(file, "r+", format = "NETCDF4")
 ## Open
 lon        = input.variables['longitude'][:]
 lat = lat0 = input.variables[ 'latitude'][:]
+lsm        = input.variables[ 'lsm'     ][:]
 
 ## Convert 2 arrays
 def conc(x0, y):   
@@ -32,6 +33,8 @@ def gridVar(x, nm):
 
 gridVar(lon  , 'grid_lon')
 gridVar(lat.T, 'grid_lat')
+gridVar(lsm  , 'grid_lsm')
+
 
 input.close()
 
