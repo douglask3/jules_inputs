@@ -56,7 +56,7 @@ for input_file in listdir(root_dir + clim_dir):
 ## Output drive_file
 drive_info = '\n'.join("'" + getcwd() + '/' + a + "', '" + b + "'" for a,b in zip(fnames, drive_date))
 drive_file = open("outputs/drive_file.txt", "w")
-drive_file.write(drive_info)
+drive_file.write(sorted(drive_info))
 drive_file.close()
 
 
