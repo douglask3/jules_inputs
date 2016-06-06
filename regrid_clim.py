@@ -54,9 +54,13 @@ for input_file in listdir(root_dir + clim_dir):
     iris.save(output_data, output_file)
 
 ## Output drive_file
+drive_date = sorted(drive_date)
+fnames     = sorted(fnames)
+
 drive_info = '\n'.join("'" + getcwd() + '/' + a + "', '" + b + "'" for a,b in zip(fnames, drive_date))
 drive_file = open("outputs/drive_file.txt", "w")
-drive_file.write(sorted(drive_info))
+
+drive_file.write(drive_info)
 drive_file.close()
 
 
