@@ -30,8 +30,3 @@ for i in range(tot.data.shape[0]):
 iris.save(dat, file)         
 set_trace()
 
-#dat.data = dat.data / tot.data
-
-
-
-
