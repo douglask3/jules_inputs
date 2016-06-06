@@ -1,0 +1,31 @@
+&jules_output
+nprofiles=2,
+output_dir='outputs/',
+run_id='gswp3',
+/
+&jules_output_profile
+file_period=-2,
+nvars=8,
+output_start='2007-09-04 03:00:00',
+output_end='2007-09-05 03:00:00'
+output_main_run=.true.,
+output_spinup=.false.,,
+output_type=8*'S',
+profile_name='drive',
+var='rainfall','snowfall','sw_down','lw_down','tl1','u1','v1',
+'qw1',
+var_name='',
+/
+&jules_output_profile
+file_period=-2,
+nvars=10,
+output_start='2007-09-04 03:00:00',
+output_end='2007-09-05 03:00:00'
+output_main_run=.true.,
+output_spinup=.false.,
+output_type=10*'S',
+profile_name='fluxes',
+var='fqw_gb','ftl_gb','tstar_gb','latent_heat','snow_mass_gb',
+'sthu','sthf','t_soil','frac','lai',
+var_name='',
+/
