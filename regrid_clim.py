@@ -41,7 +41,7 @@ for input_file in listdir(root_dir + clim_dir):
    
     ## load cube
     cube = iris.load_cube( file) 
-    date = str(cube.coord('time')[1])[10:29]
+    date = str(cube.coord('time')[0])[10:29]
     
     ## Find new drive_file entry
     if date not in drive_date: 
