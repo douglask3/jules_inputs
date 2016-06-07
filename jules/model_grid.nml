@@ -22,7 +22,7 @@ force_1d_grid=.false.,
 land_only=.true.,
 use_subgrid=.true.,
 latlon_region=.false.
-npoints=5
+npoints=81
 points_file='../outputs/points_file.txt'
 /
 &jules_surf_hgt
