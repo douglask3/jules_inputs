@@ -1,0 +1,21 @@
+lon,lat,veg type,Continent
+130,-28,D,Aus
+145,-39,tBE,Aus
+147,-35,tC3,Aus
+130,-20,TC4,Aus
+132,-15,TC3,Aus
+140,-7,TBE,Aus
+20,-33,D,Safr
+23,-28,tC4,Safr
+27,-30,tC3,Safr
+15,-5,TBE,Cafr
+18.5,-10,tBE,Cafr
+18.5,-12.5,TC4,Cafr
+19,-13.5,TC3,Cafr
+5,8,TC4,Cafr
+16.5,5,TC3,Cafr
+-10,15,D,Nafr
+0,20,D,Nafr
+10,25,D,Nafr
+30,30,D,Nafr
+5,35,tC4,Nafr
