@@ -1,5 +1,27 @@
 # Regridding to GC3 files
 
+## Run JULES
+
+- Compile jules. Set `fcm` path in `jules/compile_fules`   
+
+
+```
+    cd jules
+    chmod +x compileJules
+    ./compileJules ~/doukel/jules-vn4.5
+```
+
+- Run to
+
+```
+    cd jules
+```
+    - Edit namelists if required. Then:
+
+```
+    ./jules.exe
+```
+
 ## Commands
 
 ```	

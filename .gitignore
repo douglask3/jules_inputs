@@ -5,3 +5,6 @@ outputs/*
 *.swp
 *outputs*
 
+jules/compiled/*
+jules/jules.exe
+

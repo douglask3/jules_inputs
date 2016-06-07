@@ -1,0 +1,8 @@
+#!/bin/bash
+fcm=/users/global/rjel/bin/fcm-2014.06.0/bin/fcm
+
+./usualSettings
+echo "$1/trunk/etc/fcm-make/make.cfg"
+$fcm make -f "$1/trunk/etc/fcm-make/make.cfg" -C compiled
+ln -sfn jules/compiled/build/bin/jules.exe
+

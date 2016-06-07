@@ -1,0 +1,7 @@
+export JULES_COMPILER=gfortran
+export JULES_BUILD=fast
+export JULES_NETCDF=netcdf
+export JULES_NETCDF_PATH=/usr/
+export JULES_NETCDF_INC_PATH=/usr/lib64/gfortran/modules/
+export JULES_NETCDF_LIB_PATH=/usr/include/
+
