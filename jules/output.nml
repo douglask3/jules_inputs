@@ -6,10 +6,10 @@ run_id='gswp3',
 &jules_output_profile
 file_period=-2,
 nvars=8,
-output_start='2007-09-04 03:00:00',
-output_end='2007-09-05 03:00:00'
+output_start='2000-01-01 00:00:00',
+output_end='2010-01-01 00:00:00'
 output_main_run=.true.,
-output_spinup=.false.,,
+output_spinup=.false.,
 output_type=8*'S',
 profile_name='drive',
 var='rainfall','snowfall','sw_down','lw_down','tl1','u1','v1',
@@ -19,8 +19,8 @@ var_name='',
 &jules_output_profile
 file_period=-2,
 nvars=10,
-output_start='2007-09-04 03:00:00',
-output_end='2007-09-05 03:00:00'
+output_start='2000-01-01 00:00:00',
+output_end='2010-01-01 00:00:00'
 output_main_run=.true.,
 output_spinup=.false.,
 output_type=10*'S',
