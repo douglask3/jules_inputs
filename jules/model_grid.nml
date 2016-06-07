@@ -20,8 +20,13 @@ land_frac_name='grid_lsm',
 &jules_model_grid
 force_1d_grid=.false.,
 land_only=.true.,
-use_subgrid=.false.,
+use_subgrid=.true.,
+latlon_region=.false.
+npoints=5
+points_file='../outputs/points_file.txt'
 /
 &jules_surf_hgt
 zero_height=.true.,
 /
+
+
