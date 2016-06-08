@@ -50,9 +50,6 @@ lonLat[1:, 1] = round2grid(lonLat[1:, 1], lat)
 ## Output                                      ##
 #################################################
 ## git info
-#g   = git.cmd.Git(".")
-#rev = g.execute(('git rev-parse HEAD'))
-#url = g.execute(('config --get remote.origin.url'))
 rev = os.popen('git rev-parse HEAD').read()[0:7]
 url = os.popen('git config --get remote.origin.url').read()
 git = 'repo: ' + url + '\n' + 'rev:  ' + rev
