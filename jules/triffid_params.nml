@@ -1,4 +1,10 @@
 &jules_triffid
+alloc_fast_io=5*0.6,
+alloc_med_io=5*0.3,
+alloc_slow_io=5*0.1,
+dpm_rpm_ratio_io=5*0.5,
+retran_l_io=5*0.5,
+retran_r_io=5*0.2,
 crop_io=0,0,1,1,0,
 g_area_io=0.005,0.007,0.20,0.20,0.05,
 g_grow_io=15.00,20.00,20.00,20.00,20.00,

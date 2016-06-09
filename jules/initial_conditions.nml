@@ -1,10 +1,12 @@
 &jules_initial
-const_val=0.0,275.0,10.0,0.0,50.0,0.75,0.75,278.0,
+const_val=0.0,275.0,10.0,0.0,50.0,0.75,0.75,278.0,0.0,0.0,1.0,
 dump_file=.false.,
-file='',
-nvars=8,
+var_name=11*'field1391',
+file='../outputs/qrparm.veg.frac.nc',
+nvars=11,
 total_snow=.true.,
-use_file=8*.false.,
+use_file=10*.false.,.true.,
 var='canopy','tstar_tile','cs','gs','rgrain','snow_tile',
 'sthuf','t_soil',
+'lai','canht','frac',
 /
