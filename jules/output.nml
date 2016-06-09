@@ -1,6 +1,6 @@
 &jules_output
 nprofiles=2,
-output_dir='outputs/',
+output_dir='outputs/veg2/',
 run_id='gswp3',
 /
 &jules_output_profile
@@ -17,7 +17,7 @@ var='rainfall','snowfall','sw_down','lw_down','tl1','u1','v1',
 var_name='',
 /
 &jules_output_profile
-file_period=-2,
+file_period=-1,
 nvars=10,
 output_start='2000-01-01 00:00:00',
 output_end='2010-01-01 00:00:00'
