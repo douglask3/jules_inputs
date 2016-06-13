@@ -8,3 +8,5 @@ outputs/*
 jules/compiled/*
 jules/jules.exe
 figs/*
+
+*.pyc

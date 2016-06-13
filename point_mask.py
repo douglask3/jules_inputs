@@ -11,7 +11,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import iris.plot as iplt
 import cartopy.crs as ccrs
 from pdb import set_trace as browser
-import os
+from libs import git_info
 
 ## File info
 file_in  = 'docs/points_for_mask2.csv'
@@ -49,12 +49,7 @@ lonLat[1:, 1] = round2grid(lonLat[1:, 1], lat)
 #################################################
 ## Output                                      ##
 #################################################
-## git info
-rev = os.popen('git rev-parse HEAD').read()[0:7]
-url = os.popen('git config --get remote.origin.url').read()
-git = 'repo: ' + url + '\n' + 'rev:  ' + rev
-
-
+git = 'repo: ' + git_info.url() + '\n' + 'rev:  ' + git_info.rev
 ## Write to file
 np.savetxt(file_out, lonLat[:,[1,0]], fmt = '%.4f', delimiter = '\t')
 
