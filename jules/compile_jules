@@ -1,9 +1,17 @@
 #!/bin/bash
-fcm=/users/global/rjel/bin/fcm-2014.06.0/bin/fcm
+
 wd=`pwd`
 
-. $wd/usualSettings
-echo "$1/trunk/etc/fcm-make/make.cfg"
-$fcm make -f "$1/trunk/etc/fcm-make/make.cfg" -C compiled
+source ../cfg
+cp -f ../docs/namelists/* .
+
+sed -i -e 's|CLIM_OUTPUT_DIR|'"$clim_output_dir"'|g' *.nml
+sed -i -e 's|JULES_OUTPUT_DIR|'"$jules_output_dir"'|g' *.nml
+
+
+module load intel/15.0
+echo fcm make -f "$1/etc/fcm-make/make-fast.cfg"  
+fcm make -f "$1/etc/fcm-make/make-fast.cfg" -C compiled
+
 ln -sfn $wd/compiled/build/bin/jules.exe
 

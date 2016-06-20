@@ -9,12 +9,12 @@ time_dim_name='time',
 type_dim_name='pseudo'
 /
 &jules_latlon
-file='../outputs/gc3_orca1_mask.nc',
+file='CLIM_OUTPUT_DIR/gc3_orca1_mask.nc',
 lat_name='grid_lat',
 lon_name='grid_lon',
 /
 &jules_land_frac
-file='../outputs/gc3_orca1_mask.nc',
+file='CLIM_OUTPUT_DIR/gc3_orca1_mask.nc',
 land_frac_name='grid_lsm',
 /
 &jules_model_grid
@@ -23,7 +23,7 @@ land_only=.true.,
 use_subgrid=.true.,
 latlon_region=.false.
 npoints=81
-points_file='../outputs/points_file.txt'
+points_file='CLIM_OUTPUT_DIR/points_file.txt'
 /
 &jules_surf_hgt
 zero_height=.true.,

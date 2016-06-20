@@ -2,7 +2,7 @@
 data_start='2000-01-01 00:00:00',
 data_end='2010-12-31 21:00:00',
 data_period=10800,
-file='../outputs/drive_file.txt',
+file='CLIM_OUTPUT_DIR/drive_file.txt',
 interp='nb','nb','nb','nb','i','i','i','i',
 l_daily_disagg=.false.,
 l_imogen=.false.,

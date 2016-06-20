@@ -1,6 +1,6 @@
 &jules_output
 nprofiles=2,
-output_dir='outputs/veg2/',
+output_dir='JULES_OUTPUT_DIR/veg2/',
 run_id='gswp3',
 /
 &jules_output_profile

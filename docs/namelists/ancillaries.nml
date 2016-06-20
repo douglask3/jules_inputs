@@ -1,10 +1,10 @@
 &jules_frac
-file='../outputs/qrparm.veg.frac.nc',
+file='CLIM_OUTPUT_DIR/qrparm.veg.frac.nc',
 frac_name='field1391',
 /
 &jules_soil_props
 const_z=.true.,
-file='../outputs/qrparm.soil.nc',
+file='CLIM_OUTPUT_DIR/qrparm.soil.nc',
 nvars=9,
 use_file=9*.true.,
 var='b','sathh','satcon','sm_sat','sm_crit','sm_wilt','hcap',

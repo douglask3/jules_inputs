@@ -7,4 +7,5 @@ outputs/*
 
 jules/compiled/*
 jules/jules.exe
+jules/*.nml
 figs/*
