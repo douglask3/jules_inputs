@@ -20,7 +20,7 @@ land_frac_name='grid_lsm',
 &jules_model_grid
 force_1d_grid=.false.,
 land_only=.true.,
-use_subgrid=.true.,
+use_subgrid=.false.
 latlon_region=.false.
 npoints=81
 points_file='CLIM_OUTPUT_DIR/points_file.txt'
