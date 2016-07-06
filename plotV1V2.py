@@ -14,8 +14,10 @@ arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
 years          = range(2000,2001)
-varname        = 'gpp_gb'
 
+
+varnames       = 'gpp_gb'
+limits         = [[0.0, 0.5, 1, 1.5, 2, 2.5, 3]]
 ###############################################
 ## Open stuff                                ##
 ###############################################
@@ -33,7 +35,7 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
     dat   = nc.variables[ varname   ][:]
     lat   = nc.variables['latitude' ][:]
     lon   = nc.variables['longitude'][:]
-   
+
     n = dat.shape[0]
     if Fun is not None: dat = np.apply_along_axis(Fun, 0, dat)
     if perLength: dat = dat/n
@@ -42,25 +44,25 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
     lat_variable, lat_index = min_diff_sequance(lat, -90 , 90 )
     lon_variable, lon_index = min_diff_sequance(lon, 0, 360)
     dat_variable = np.zeros([ dat.shape[0], len(lat_variable), len(lon_variable)])
-        
+
     for i in range(1, dat.shape[2]):
-        x = lon_index[i - 1]; y = lat_index[i - 1] 
+        x = lon_index[i - 1]; y = lat_index[i - 1]
         dat_variable[:, y, x] = dat[:, 0, i]
 
-    return output_file(fname_out, dat_variable, lat_variable, lon_variable)       
+    return output_file(fname_out, dat_variable, lat_variable, lon_variable)
 
 def coor_range(mn, mx, ncells):
         diff = float(mx  - mn) / ncells
-        return np.arange(mn + diff/2, mx , diff)  
+        return np.arange(mn + diff/2, mx , diff)
 
 def output_file(fname, dat, lat_variable = None, lon_variable = None):
     if len(dat.shape) == 2: dat = np.reshape(dat, [1, dat.shape[0], dat.shape[1]])
-     
+
     if lat_variable is None: lat_variable = coor_range(-90 , 90 , dat.shape[1])
     if lon_variable is None: lon_variable = coor_range(0, 360, dat.shape[2])
-    
-    rootgrp = Dataset(fname, "w", format="NETCDF4")    
-    
+
+    rootgrp = Dataset(fname, "w", format="NETCDF4")
+
     time_dim = True if dat.shape[0] > 1 else False
 
     if time_dim: time = rootgrp.createDimension("time", dat.shape[0])
@@ -71,10 +73,10 @@ def output_file(fname, dat, lat_variable = None, lon_variable = None):
 
     latitudes  = rootgrp.createVariable("latitude","f4",("lat",))
     longitudes = rootgrp.createVariable("longitude","f4",("lon",))
-    
+
     dims = ("time","lat","lon",) if time_dim else ("lat","lon",)
     var = rootgrp.createVariable(varname, "f4", dims)
-    
+
     latitudes [:] = lat_variable
     longitudes[:] = lon_variable
     if time_dim:
@@ -88,13 +90,13 @@ def output_file(fname, dat, lat_variable = None, lon_variable = None):
 def openFile(veg, varname, year, month):
     m = str(month) if month > 9 else '0' + str(month)
     fname_in  = raw_output_dir + veg + '/' + file_names + str(year) + m + '.nc'
-    fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'  
-    print(fname_in)  
+    fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'
+    print(fname_in)
     return open_and_regrid_file(fname_in, fname_out, varname)
 
-def lat_size(lat, dlat, dlon = None): 
+def lat_size(lat, dlat, dlon = None):
     from math import pi, sin, pow
-    if dlon is None: dlon = dlat 
+    if dlon is None: dlon = dlat
 
     lat1 = (lat + dlat / 2.0) * pi / 180.0
     lat2 = (lat - dlat / 2.0) * pi / 180.0
@@ -106,49 +108,77 @@ def lat_size(lat, dlat, dlon = None):
 
 def global_total(dat):
     lat = coor_range(-90 , 90 , dat.shape[1])
-    
+
     tot = 0
-    for i in range(0, dat.shape[1]): 
-        ar = lat_size(lat[i], 1.25) 
+    for i in range(0, dat.shape[1]):
+        ar = lat_size(lat[i], 1.25)
         tot = tot + sum(sum(dat[:, 100, :])) * ar
-    
+
     return tot
 
-veg = veg_dir[1]
-annual_average = openFile(veg, varname, 2000, 1)
-annual_average[:,:,:] = 0.0
-TS = np.zeros([len(years)*12])
-t   = 0
-for y in years:
-    for m in range(1,12):
-        t = t + 1
-        dat = openFile(veg_dir[1], varname, y, m)
-        annual_average = annual_average + dat
-        TS[t] = global_total(dat)
 
-annual_average = annual_average * 60 * 60 * 24 * 30        
-fname = arr_output_dir + veg + '_' + varname +  '.nc' 
-output_file(fname, annual_average)
 
-plotable = iris.load(fname)
+def compare_variable(varname, limits):
+    def open_variable(veg):
+        annual_average = openFile(veg, varname, 2000, 1)
+        annual_average[:,:,:] = 0.0
+        TS = np.zeros([len(years)*12])
+        t   = 0
+        for y in years:
+            for m in range(1,12):
+                t = t + 1
+                dat = openFile(veg_dir[1], varname, y, m)
+                annual_average = annual_average + dat
+                TS[t] = global_total(dat)
 
-browser()
-git = 'repo: ' + git_info.url + '\n' + 'rev:  ' + git_info.rev
-crs_latlon = ccrs.PlateCarree()
-crs_proj   = ccrs.Robinson()
-fig = plt.figure()
-ax = plt.axes(projection = crs_proj)
-ax.set_extent((-180, 170, -65, 90.0), crs=crs_latlon)
-ax.coastlines(linewidth=0.75, color='navy')
-ax.gridlines(crs=crs_latlon, linestyle='--')
+        annual_average = annual_average * 60 * 60 * 24 * 30
+        fname = arr_output_dir + veg + '_' + varname +  '.nc'
+        output_file(fname, annual_average)
+        return(fname, TS)
 
-iplt.contourf(plotable[2], [0.0, 0.5, 1, 1.5, 2, 2.5, 3], colors=('#6666ff', '#acff88', 'b'))
-plt.gca().coastlines()
+    aa1, ts1 = open_variable(veg_dir[0])
+    aa2, ts2 = open_variable(veg_dir[1])
+    #############
+    ## Plot    ##
+    #############
+    ## setup plot
+    git = 'repo: ' + git_info.url + '\n' + 'rev:  ' + git_info.rev
+    crs_latlon = ccrs.PlateCarree()
+    crs_proj   = ccrs.Robinson()
 
-iplt.citation(git)
+    plt.figure(figsize=(6, 4))
 
-plt.show()
-#plt.savefig(fig_name, bbox_inches='tight')
+    ## Plot maps
+    def plot_map(fname, colors, title):
+        if len(fname) == 2: browser()
+        plotable = iris.load(fname)
 
-browser()
+        fig = plt.figure()
+        ax = plt.axes(projection = crs_proj)
+        ax.set_extent((-180, 170, -65, 90.0), crs=crs_latlon)
+        ax.coastlines(linewidth = 0.75, color = 'navy')
+        ax.gridlines(crs = crs_latlon, linestyle = '--')
 
+        iplt.contourf(plotable[2], limits, colors = colors)
+        plt.gca().coastlines()
+        plt.title(title)
+
+    plt.subplot(221)
+    plot_map(aa1, ('#fffff', '#6666ff', '#acff88', 'b'), 'Veg1')
+
+    plt.subplot(222)
+    plot_map(aa2, ('#fffff', '#6666ff', '#acff88', 'b'), 'Veg2')
+
+    plt.subplot(223)
+    plot_map([aa1, aa2], ('r', '#fffff', 'b'), 'Difference')
+
+    iplt.citation(git)
+
+    ## line plot
+    plt.subplot(224)
+    plt.plot(t, ts1, 'r', t, ts2, 'b')
+
+    fig_name = 'figs/' + varname + '_veg2-veg1_comparison.pdf'
+    plt.savefig(fig_name, bbox_inches='tight')
+
+for v, l in zip(varnames, limits): compare_variable(v, l)
