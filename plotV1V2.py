@@ -42,13 +42,28 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
     for i in range(1, dat.shape[2]):
         x = lon_index[i - 1]; y = lat_index[i - 1] 
         dat_variable[:, y, x] = dat[:, 0, i]
-       
-    rootgrp = Dataset(fname_out, "w", format="NETCDF4")    
-    time_dim = True if dat_variable.shape[0] > 1 else False
 
-    if time_dim: time = rootgrp.createDimension("time", dat_variable.shape[0])
-    lat = rootgrp.createDimension("lat", dat_variable.shape[1])
-    lon = rootgrp.createDimension("lon", dat_variable.shape[2])
+    return output_file(fname_out, dat_variable, lat_variable, lon_variable)       
+    
+
+def output_file(fname, dat, lat_variable = None, lon_variable = None):
+    if len(dat.shape) == 2: dat = np.reshape(dat, [1, dat.shape[0], dat.shape[1]])
+     
+    def coor_range(mn, mx, ncells):
+        diff = float(mx  - mn) / ncells
+        return np.arange(mn + diff/2, mx , diff)
+    if lat_variable is None: lat_variable = coor_range(-90 , 90 , dat.shape[1])
+    if lon_variable is None: lon_variable = coor_range(0, 360, dat.shape[2])
+    
+    rootgrp = Dataset(fname, "w", format="NETCDF4")    
+    
+    
+   
+    time_dim = True if dat.shape[0] > 1 else False
+
+    if time_dim: time = rootgrp.createDimension("time", dat.shape[0])
+    lat = rootgrp.createDimension("lat", dat.shape[1])
+    lon = rootgrp.createDimension("lon", dat.shape[2])
 
     if time_dim: times = rootgrp.createVariable("time","f8",("time",))
 
@@ -57,16 +72,16 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
     
     dims = ("time","lat","lon",) if time_dim else ("lat","lon",)
     var = rootgrp.createVariable(varname, "f4", dims)
-
+    
     latitudes [:] = lat_variable
     longitudes[:] = lon_variable
     if time_dim:
-        var[:,:,:] = dat_variable
+        var[:,:,:] = dat
     else:
-        var[:,:] = dat_variable[0,:,:]
+        var[:,:] = dat[0,:,:]
     rootgrp.close()
-    return(dat_variable)
 
+    return dat
 
 def openFile(veg, varname, year, month):
     m = str(month) if month > 9 else '0' + str(month)
@@ -85,20 +100,9 @@ for y in years:
         t = t + 1
         dat[t, :, : ] = openFile(veg_dir[1], varname, y, m)
 
+annual_average = np.apply_along_axis(sum, 0, dat) /t
+output_file('yay.nc', annual_average)
+
+
 browser()
 
-#def dailySum(x):
-#    browser()
-
-#def openFile(veg, varname, year):
-#    fname = output_dir + veg + '/' + file_names + str(year) + '.nc'
-#    dat =  Dataset(fname,  "r+", format = "NETCDF4")
-#    dat =  dat.variables[varname][:]
-#    dat = np.apply_along_axis(dailySum, 0, dat).shape 
-#    browser()
-
-#def openVeg(veg, varname):
-#    for y in years: openFile(veg, varname, y)
-
-
-#veg1 = openVeg(veg_dir[0], varname)
