@@ -2,6 +2,7 @@ from netCDF4 import Dataset
 import numpy as np
 import iris
 import matplotlib.pyplot as plt
+import matplotlib.cm as mpl_cm
 from matplotlib.colors import LinearSegmentedColormap
 import iris.plot as iplt
 import iris.quickplot as qplt
@@ -14,7 +15,7 @@ raw_output_dir = "outputs/jules/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
-years          = range(2000,2010)
+years          = range(2000,2002)
 
 
 varnames       = [['gpp_gb']]
@@ -138,11 +139,11 @@ def compare_variable(varname, limits):
         TS = np.zeros([len(years)*12])
         t   = 0
         for y in years:
-            for m in range(1,12):
-                t = t + 1
-                dat = openFile(veg_dir[1], varname, y, m)
+            for m in range(1,13):
+                dat = openFile(veg, varname, y, m)
                 annual_average = annual_average + dat
                 TS[t] = global_total(dat)
+                t = t + 1
 
         annual_average = annual_average * 60 * 60 * 24 * 365 / t
         fname = arr_output_dir + veg + '_' + varname +  '.nc'
@@ -163,7 +164,7 @@ def compare_variable(varname, limits):
     crs_proj   = ccrs.Robinson()
 
     ## Plot maps
-    def plot_map(fname, colors, limits, title, ssp):
+    def plot_map(fname, cmap, limits, title, ssp):
         if len(fname) == 2: 
             plotable = [iris.load_cube(i) for i in fname]
             plotable[0] = plotable[1] - plotable[0]
@@ -175,15 +176,17 @@ def compare_variable(varname, limits):
         ax.set_extent((-180, 170, -65, 90.0), crs = crs_latlon)
         ax.coastlines(linewidth = 0.75, color = 'navy')
         ax.gridlines(crs = crs_latlon, linestyle = '--')
-        browser()
-        qplt.contourf(plotable[0], limits, colors = colors, extend = 'both')
+               
+        qplt.contourf(plotable[0], limits, cmap = cmap)
         plt.gca().coastlines()
         plt.title(title)
     
     fig = plt.figure(figsize=(12, 8))
-    plot_map(aa1, ('#ffffff', '#6666ff', '#acff88', 'b'), limits[0], 'Veg1', 1)
-    plot_map(aa2, ('#ffffff', '#6666ff', '#acff88', 'b'), limits[0], 'Veg2', 2)
-    plot_map([aa1, aa2], ('r', '#ffffff', 'b'), limits[1], 'Difference',     3)
+    cmap =  brewer_cmap = mpl_cm.get_cmap('brewer_YlGn_09')
+    dcmap =  brewer_cmap = mpl_cm.get_cmap('brewer_PRGn_11')
+    plot_map(aa1, cmap, limits[0], 'Veg1', 1)
+    plot_map(aa2, cmap, limits[0], 'Veg2', 2)
+    plot_map([aa1, aa2], dcmap, limits[1], 'Difference',     3)
 
     iplt.citation(git)
 
