@@ -64,37 +64,31 @@ def output_file(fname, varname, dat, lat_variable = None, lon_variable = None):
 
     rootgrp = Dataset(fname, "w", format="NETCDF4")
 
-    time_dim = True if dat.shape[0] > 1 else False
+    time = rootgrp.createDimension("time", dat.shape[0])
+    lat  = rootgrp.createDimension("lat", dat.shape[1])
+    lon  = rootgrp.createDimension("lon", dat.shape[2])
 
-    if time_dim: time = rootgrp.createDimension("time", dat.shape[0])
-    lat = rootgrp.createDimension("lat", dat.shape[1])
-    lon = rootgrp.createDimension("lon", dat.shape[2])
-
-    if time_dim: times = rootgrp.createVariable("time","f8",("time",))
-
+    times      = rootgrp.createVariable("time","f8",("time",))
     latitudes  = rootgrp.createVariable("lat","f4",("lat",))
     longitudes = rootgrp.createVariable("lon","f4",("lon",))
 
-    longitudes.lon_name = 'Longitude'
-    longitudes.axis = "X"
-    longitudes.standard_name = "longitude"
-    longitudes.units = "degrees_east"
+    longitudes.lon_name         = 'Longitude'
+    longitudes.axis             = "X"
+    longitudes.standard_name    = "longitude"
+    longitudes.units            = "degrees_east"
 
-    latitudes.lon_name = 'Latitude'
-    latitudes.axis = "Y"
-    latitudes.standard_name = "latitude"
-    latitudes.units = "degrees_north"
+    latitudes.lon_name          = 'Latitude'
+    latitudes.axis              = "Y"
+    latitudes.standard_name     = "latitude"
+    latitudes.units             = "degrees_north"
 
-    dims = ("time","lat","lon",) if time_dim else ("lat","lon",)
+    dims = ("time","lat","lon",)
     var = rootgrp.createVariable(varname, "f4", dims)
 
     latitudes [:] = lat_variable
     longitudes[:] = lon_variable
+    var[:,:,:]    = dat
     
-    if time_dim: 
-        var[:,:,:] = dat
-    else:
-        var[:,:] = dat[0,:,:]
     rootgrp.close()
 
     return dat
@@ -127,6 +121,8 @@ def global_total(dat):
         tot = tot + sum(sum(dat[:, 100, :])) * ar
 
     return tot
+
+
 
 def compare_variable(varname, limits):
     varname = varname[0]
