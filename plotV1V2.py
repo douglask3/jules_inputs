@@ -25,6 +25,7 @@ varnames       = [['gpp_gb']]
 limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
 
 remake_files   = False
+diagnose_lims  = True
 ###############################################
 ## Open stuff                                ##
 ###############################################
@@ -182,8 +183,9 @@ def compare_variable(varname, limits):
         ax.set_extent((-180, 170, -65, 90.0), crs = crs_latlon)
         ax.coastlines(linewidth = 0.75, color = 'navy')
         ax.gridlines(crs = crs_latlon, linestyle = '--')
-               
-        qplt.contourf(plotable[0], 10, cmap = cmap)
+        
+        if diagnose_lims: limits = 10      
+        qplt.contourf(plotable[0], limits, cmap = cmap)
         plt.gca().coastlines()
         plt.title(title)
     
