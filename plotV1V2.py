@@ -19,10 +19,23 @@ raw_output_dir = "outputs/jules/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
-years          = range(2000,2004)
+years          = range(2000,2010)
 
-varnames       = [['gpp_gb']]
-limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
+varnames       = [['gpp_gb'], ['cs_gb'], ['lit_c_mean'], ['npp_gb'], ['resp_l'], 
+                  ['resp_p_gb'], ['resp_r'], ['resp_s'], ['resp_s_gb']]
+
+limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
+
+sec2year       = 60 * 60 * 24 * 365
+scaling        = [sec2year, 1, 1, sec2year, sec2year, sec2year, sec2year, sec2year]
 
 remake_files   = False
 diagnose_lims  = True
@@ -139,7 +152,7 @@ def global_total(dat):
 
     return tot
 
-def compare_variable(varname, limits):
+def compare_variable(varname, limits, scaling):
     varname = varname[0]
     def open_variable(veg): 
         annual_average = openFile(veg, varname, 2000, 1)
@@ -153,11 +166,11 @@ def compare_variable(varname, limits):
                 TS[t] = global_total(dat)
                 t = t + 1
 
-        annual_average = annual_average * 60 * 60 * 24 * 365 / t
+        annual_average = annual_average * scaling / t
         fname = arr_output_dir + veg + '_' + varname +  '.nc'
         output_file(fname, varname, annual_average)
         
-        TS = TS * 60.0 * 60.0 * 24.0 * (365.0/12.0) /1000000000000.0
+        TS = TS * scaling /(12 * 1000000000000.0)
 
         return(fname, TS)
    
@@ -209,4 +222,4 @@ def compare_variable(varname, limits):
     plt.savefig(fig_name, bbox_inches='tight')
 
 
-for v, l in zip(varnames, limits): compare_variable(v, l)
+for v, l, s in zip(varnames, limits, scaling): compare_variable(v, l, s)
