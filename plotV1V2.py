@@ -19,12 +19,12 @@ raw_output_dir = "outputs/jules/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
-years          = range(2000,2002)
+years          = range(2000,2004)
 
 varnames       = [['gpp_gb']]
 limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
 
-remake_files   = True
+remake_files   = False
 ###############################################
 ## Open stuff                                ##
 ###############################################
@@ -45,12 +45,16 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
 
     n = dat.shape[0]
     if Fun is not None: dat = np.apply_along_axis(Fun, 0, dat)
+    if n == 0:
+        dn = n
+        browser()
     if perLength: dat = dat/n
     if len(dat.shape) == 2: dat = np.reshape(dat, [1, 1, dat.shape[1]])
 
     lat_variable, lat_index = min_diff_sequance(lat, -90 , 90 )
     lon_variable, lon_index = min_diff_sequance(lon, 0, 360)
-    dat_variable = np.zeros([ dat.shape[0], len(lat_variable), len(lon_variable)])
+    dat_variable            = np.zeros([ dat.shape[0], len(lat_variable), len(lon_variable)])
+    dat_variable[:, :, :]   = np.NAN
 
     for i in range(1, dat.shape[2]):
         x = lon_index[i - 1]; y = lat_index[i - 1]
@@ -125,16 +129,14 @@ def lat_size(lat, dlat, dlon = None):
     return size_lat
 
 def global_total(dat):
-    lat = coor_range(-90 , 90 , dat.shape[1])
+    lat = coor_range(-90.0 , 90.0 , dat.shape[1])
 
     tot = 0
     for i in range(0, dat.shape[1]):
-        ar = lat_size(lat[i], 1.25)
-        tot = tot + sum(sum(dat[:, 100, :])) * ar
+        toti = np.nansum(dat[:, i, :]) * lat_size(lat[i], 1.25)        
+        if not np.isnan(toti): tot = tot + toti
 
     return tot
-
-
 
 def compare_variable(varname, limits):
     varname = varname[0]
@@ -172,8 +174,7 @@ def compare_variable(varname, limits):
     def plot_map(fname, cmap, limits, title, ssp):
         if len(fname) == 2: 
             plotable = [iris.load_cube(i) for i in fname]
-            plotable[0] = plotable[1] - plotable[0]
-            plotable = plotable[0]
+            plotable = plotable[1] - plotable[0]
         else:
             plotable = iris.load_cube(fname)
         
@@ -182,7 +183,7 @@ def compare_variable(varname, limits):
         ax.coastlines(linewidth = 0.75, color = 'navy')
         ax.gridlines(crs = crs_latlon, linestyle = '--')
                
-        qplt.contourf(plotable[0], limits, cmap = cmap)
+        qplt.contourf(plotable[0], 10, cmap = cmap)
         plt.gca().coastlines()
         plt.title(title)
     
