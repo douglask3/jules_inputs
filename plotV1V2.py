@@ -4,6 +4,7 @@ import iris
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import iris.plot as iplt
+import iris.quickplot as qplt
 import cartopy.crs as ccrs
 from libs import git_info
 from pdb import set_trace as browser
@@ -13,11 +14,11 @@ raw_output_dir = "outputs/jules/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
-years          = range(2000,2001)
+years          = range(2000,2010)
 
 
-varnames       = 'gpp_gb'
-limits         = [[0.0, 0.5, 1, 1.5, 2, 2.5, 3]]
+varnames       = [['gpp_gb']]
+limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
 ###############################################
 ## Open stuff                                ##
 ###############################################
@@ -49,13 +50,13 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
         x = lon_index[i - 1]; y = lat_index[i - 1]
         dat_variable[:, y, x] = dat[:, 0, i]
 
-    return output_file(fname_out, dat_variable, lat_variable, lon_variable)
+    return output_file(fname_out, varname, dat_variable, lat_variable, lon_variable)
 
 def coor_range(mn, mx, ncells):
         diff = float(mx  - mn) / ncells
         return np.arange(mn + diff/2, mx , diff)
 
-def output_file(fname, dat, lat_variable = None, lon_variable = None):
+def output_file(fname, varname, dat, lat_variable = None, lon_variable = None):
     if len(dat.shape) == 2: dat = np.reshape(dat, [1, dat.shape[0], dat.shape[1]])
 
     if lat_variable is None: lat_variable = coor_range(-90 , 90 , dat.shape[1])
@@ -63,7 +64,7 @@ def output_file(fname, dat, lat_variable = None, lon_variable = None):
 
     rootgrp = Dataset(fname, "w", format="NETCDF4")
 
-    time_dim = True if dat.shape[0] > 1 else False
+    time_dim = True #if dat.shape[0] > 1 else False
 
     if time_dim: time = rootgrp.createDimension("time", dat.shape[0])
     lat = rootgrp.createDimension("lat", dat.shape[1])
@@ -71,15 +72,26 @@ def output_file(fname, dat, lat_variable = None, lon_variable = None):
 
     if time_dim: times = rootgrp.createVariable("time","f8",("time",))
 
-    latitudes  = rootgrp.createVariable("latitude","f4",("lat",))
-    longitudes = rootgrp.createVariable("longitude","f4",("lon",))
+    latitudes  = rootgrp.createVariable("lat","f4",("lat",))
+    longitudes = rootgrp.createVariable("lon","f4",("lon",))
+
+    longitudes.lon_name = 'Longitude'
+    longitudes.axis = "X"
+    longitudes.standard_name = "longitude"
+    longitudes.units = "degrees_east"
+
+    latitudes.lon_name = 'Latitude'
+    latitudes.axis = "Y"
+    latitudes.standard_name = "latitude"
+    latitudes.units = "degrees_north"
 
     dims = ("time","lat","lon",) if time_dim else ("lat","lon",)
     var = rootgrp.createVariable(varname, "f4", dims)
 
     latitudes [:] = lat_variable
     longitudes[:] = lon_variable
-    if time_dim:
+    
+    if time_dim: 
         var[:,:,:] = dat
     else:
         var[:,:] = dat[0,:,:]
@@ -119,7 +131,8 @@ def global_total(dat):
 
 
 def compare_variable(varname, limits):
-    def open_variable(veg):
+    varname = varname[0]
+    def open_variable(veg): 
         annual_average = openFile(veg, varname, 2000, 1)
         annual_average[:,:,:] = 0.0
         TS = np.zeros([len(years)*12])
@@ -131,11 +144,14 @@ def compare_variable(varname, limits):
                 annual_average = annual_average + dat
                 TS[t] = global_total(dat)
 
-        annual_average = annual_average * 60 * 60 * 24 * 30
+        annual_average = annual_average * 60 * 60 * 24 * 365 / t
         fname = arr_output_dir + veg + '_' + varname +  '.nc'
-        output_file(fname, annual_average)
-        return(fname, TS)
+        output_file(fname, varname, annual_average)
+        
+        TS = TS * 60.0 * 60.0 * 24.0 * (365.0/12.0) /1000000000000.0
 
+        return(fname, TS)
+   
     aa1, ts1 = open_variable(veg_dir[0])
     aa2, ts2 = open_variable(veg_dir[1])
     #############
@@ -146,39 +162,40 @@ def compare_variable(varname, limits):
     crs_latlon = ccrs.PlateCarree()
     crs_proj   = ccrs.Robinson()
 
-    plt.figure(figsize=(6, 4))
-
     ## Plot maps
-    def plot_map(fname, colors, title):
-        if len(fname) == 2: browser()
-        plotable = iris.load(fname)
-
-        fig = plt.figure()
-        ax = plt.axes(projection = crs_proj)
-        ax.set_extent((-180, 170, -65, 90.0), crs=crs_latlon)
+    def plot_map(fname, colors, limits, title, ssp):
+        if len(fname) == 2: 
+            plotable = [iris.load_cube(i) for i in fname]
+            plotable[0] = plotable[1] - plotable[0]
+            plotable = plotable[0]
+        else:
+            plotable = iris.load_cube(fname)
+        
+        ax = fig.add_subplot(2, 2, ssp, projection = crs_proj)
+        ax.set_extent((-180, 170, -65, 90.0), crs = crs_latlon)
         ax.coastlines(linewidth = 0.75, color = 'navy')
         ax.gridlines(crs = crs_latlon, linestyle = '--')
-
-        iplt.contourf(plotable[2], limits, colors = colors)
+        browser()
+        qplt.contourf(plotable[0], limits, colors = colors, extend = 'both')
         plt.gca().coastlines()
         plt.title(title)
-
-    plt.subplot(221)
-    plot_map(aa1, ('#fffff', '#6666ff', '#acff88', 'b'), 'Veg1')
-
-    plt.subplot(222)
-    plot_map(aa2, ('#fffff', '#6666ff', '#acff88', 'b'), 'Veg2')
-
-    plt.subplot(223)
-    plot_map([aa1, aa2], ('r', '#fffff', 'b'), 'Difference')
+    
+    fig = plt.figure(figsize=(12, 8))
+    plot_map(aa1, ('#ffffff', '#6666ff', '#acff88', 'b'), limits[0], 'Veg1', 1)
+    plot_map(aa2, ('#ffffff', '#6666ff', '#acff88', 'b'), limits[0], 'Veg2', 2)
+    plot_map([aa1, aa2], ('r', '#ffffff', 'b'), limits[1], 'Difference',     3)
 
     iplt.citation(git)
 
     ## line plot
-    plt.subplot(224)
-    plt.plot(t, ts1, 'r', t, ts2, 'b')
+    ax = fig.add_subplot(224)
+    t = np.arange(years[0], years[-1] + 1, 1.0/12.0)
+
+    ax.get_xaxis().get_major_formatter().set_scientific(False)
+    plt.plot(t, ts1, 'r', t, ts2, 'b--')
 
     fig_name = 'figs/' + varname + '_veg2-veg1_comparison.pdf'
     plt.savefig(fig_name, bbox_inches='tight')
+
 
 for v, l in zip(varnames, limits): compare_variable(v, l)
