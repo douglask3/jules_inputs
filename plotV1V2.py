@@ -59,13 +59,12 @@ def coor_range(mn, mx, ncells):
 
 def output_file(fname, varname, dat, lat_variable = None, lon_variable = None):
     if len(dat.shape) == 2: dat = np.reshape(dat, [1, dat.shape[0], dat.shape[1]])
-
     if lat_variable is None: lat_variable = coor_range(-90 , 90 , dat.shape[1])
     if lon_variable is None: lon_variable = coor_range(0, 360, dat.shape[2])
 
     rootgrp = Dataset(fname, "w", format="NETCDF4")
 
-    time_dim = True #if dat.shape[0] > 1 else False
+    time_dim = True if dat.shape[0] > 1 else False
 
     if time_dim: time = rootgrp.createDimension("time", dat.shape[0])
     lat = rootgrp.createDimension("lat", dat.shape[1])
@@ -128,8 +127,6 @@ def global_total(dat):
         tot = tot + sum(sum(dat[:, 100, :])) * ar
 
     return tot
-
-
 
 def compare_variable(varname, limits):
     varname = varname[0]
