@@ -23,6 +23,8 @@ years          = range(2000,2002)
 
 varnames       = [['gpp_gb']]
 limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
+
+remake_files   = True
 ###############################################
 ## Open stuff                                ##
 ###############################################
@@ -102,7 +104,7 @@ def openFile(veg, varname, year, month):
     fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'
     
     print(fname_in)
-    if isfile(fname_out):
+    if not remake_files and isfile(fname_out):
         nc  = Dataset(fname_out,  "r+", format = "NETCDF4")
         dat = nc.variables[ varname   ][:]
     else:
