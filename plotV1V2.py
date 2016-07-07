@@ -1,12 +1,16 @@
 from netCDF4 import Dataset
 import numpy as np
+
 import iris
-import matplotlib.pyplot as plt
-import matplotlib.cm as mpl_cm
-from matplotlib.colors import LinearSegmentedColormap
 import iris.plot as iplt
 import iris.quickplot as qplt
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as mpl_cm
 import cartopy.crs as ccrs
+
+from os.path import isfile
+
 from libs import git_info
 from pdb import set_trace as browser
 
@@ -16,7 +20,6 @@ arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
 years          = range(2000,2002)
-
 
 varnames       = [['gpp_gb']]
 limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
@@ -97,8 +100,15 @@ def openFile(veg, varname, year, month):
     m = str(month) if month > 9 else '0' + str(month)
     fname_in  = raw_output_dir + veg + '/' + file_names + str(year) + m + '.nc'
     fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'
+    
     print(fname_in)
-    return open_and_regrid_file(fname_in, fname_out, varname)
+    if isfile(fname_out):
+        nc  = Dataset(fname_out,  "r+", format = "NETCDF4")
+        dat = nc.variables[ varname   ][:]
+    else:
+        dat =   open_and_regrid_file(fname_in, fname_out, varname)
+    
+    return dat
 
 def lat_size(lat, dlat, dlon = None):
     from math import pi, sin, pow
