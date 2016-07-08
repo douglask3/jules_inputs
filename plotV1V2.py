@@ -1,18 +1,22 @@
-from netCDF4 import Dataset
-import numpy as np
+from   netCDF4 import Dataset
+import numpy   as np
 
 import iris
-import iris.plot as iplt
+import iris.plot      as iplt
 import iris.quickplot as qplt
 
 import matplotlib.pyplot as plt
-from pylab import *
-import matplotlib.cm as mpl_cm
-import cartopy.crs as ccrs
+from   pylab             import *
+import matplotlib.cm     as mpl_cm
+import cartopy.crs       as ccrs
 
 from os.path import isfile
 
-from libs import git_info
+from libs                   import git_info
+from libs.min_diff_sequance import *
+from libs.grid_funs         import * #coor_range, lat_size, global_total
+from libs.jules_file_man    import * #open_and_regrid_file, output_file
+
 from pdb import set_trace as browser
 
 # Define paths and parameters
@@ -44,115 +48,11 @@ diagnose_lims  = True
 ###############################################
 ## Open stuff                                ##
 ###############################################
-
-
-def min_diff_sequance(x, min_v, max_v):
-    d =  np.diff(np.unique(x)).min()
-    y = np.arange(min_v + d / 2, max_v + d / 2, d)
-    i = (x - min_v - d/2)/d
-    i = i.astype(int)[0,:]
-    return(y, i)
-
-def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = True):
-    nc    = Dataset(fname_in,  "r+", format = "NETCDF4")
-    dat   = nc.variables[ varname   ][:]
-    lat   = nc.variables['latitude' ][:]
-    lon   = nc.variables['longitude'][:]
-
-    n = dat.shape[0]
-    if Fun is not None: dat = np.apply_along_axis(Fun, 0, dat)
-    if n == 0:
-        dn = n
-        browser()
-    if perLength: dat = dat/n
-    if len(dat.shape) == 2: dat = np.reshape(dat, [1, 1, dat.shape[1]])
-
-    lat_variable, lat_index = min_diff_sequance(lat, -90 , 90 )
-    lon_variable, lon_index = min_diff_sequance(lon, 0, 360)
-    dat_variable            = np.zeros([ dat.shape[0], len(lat_variable), len(lon_variable)])
-    dat_variable[:, :, :]   = np.NAN
-
-    for i in range(1, dat.shape[2]):
-        x = lon_index[i - 1]; y = lat_index[i - 1]
-        dat_variable[:, y, x] = dat[:, 0, i]
-
-    return output_file(fname_out, varname, dat_variable, lat_variable, lon_variable)
-
-def coor_range(mn, mx, ncells):
-        diff = float(mx  - mn) / ncells
-        return np.arange(mn + diff/2, mx , diff)
-
-def output_file(fname, varname, dat, lat_variable = None, lon_variable = None):
-    if len(dat.shape) == 2: dat = np.reshape(dat, [1, dat.shape[0], dat.shape[1]])
-    if lat_variable is None: lat_variable = coor_range(-90 , 90 , dat.shape[1])
-    if lon_variable is None: lon_variable = coor_range(0, 360, dat.shape[2])
-
-    rootgrp = Dataset(fname, "w", format="NETCDF4")
-
-    time = rootgrp.createDimension("time", dat.shape[0])
-    lat  = rootgrp.createDimension("lat", dat.shape[1])
-    lon  = rootgrp.createDimension("lon", dat.shape[2])
-
-    times      = rootgrp.createVariable("time","f8",("time",))
-    latitudes  = rootgrp.createVariable("lat","f4",("lat",))
-    longitudes = rootgrp.createVariable("lon","f4",("lon",))
-
-    longitudes.lon_name         = 'Longitude'
-    longitudes.axis             = "X"
-    longitudes.standard_name    = "longitude"
-    longitudes.units            = "degrees_east"
-
-    latitudes.lon_name          = 'Latitude'
-    latitudes.axis              = "Y"
-    latitudes.standard_name     = "latitude"
-    latitudes.units             = "degrees_north"
-
-    dims = ("time","lat","lon",)
-    var = rootgrp.createVariable(varname, "f4", dims)
-
-    latitudes [:] = lat_variable
-    longitudes[:] = lon_variable
-    var[:,:,:]    = dat
-    
-    rootgrp.close()
-
-    return dat
-
-def openFile(veg, varname, year, month):
+def loadFile(veg, varname, year, month):
     m = str(month) if month > 9 else '0' + str(month)
     fname_in  = raw_output_dir + veg + '/' + file_names + str(year) + m + '.nc'
     fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'
-    
-    print(fname_in)
-    if not remake_files and isfile(fname_out):
-        nc  = Dataset(fname_out,  "r+", format = "NETCDF4")
-        dat = nc.variables[ varname   ][:]
-    else:
-        dat =   open_and_regrid_file(fname_in, fname_out, varname)
-    
-    return dat
-
-def lat_size(lat, dlat, dlon = None):
-    from math import pi, sin, pow
-    if dlon is None: dlon = dlat
-
-    lat1 = (lat + dlat / 2.0) * pi / 180.0
-    lat2 = (lat - dlat / 2.0) * pi / 180.0
-
-    size_lat = abs(sin(lat1) - sin(lat2))
-    size_lat = (dlat/360) * 2.0 * size_lat * pi * pow(6378137.0, 2.0)
-    size_lat = abs(size_lat)
-    return size_lat
-
-def global_total(dat):
-    lat = coor_range(-90.0 , 90.0 , dat.shape[1])
-
-    tot = 0
-    for i in range(0, dat.shape[1]):
-        toti = np.nansum(dat[:, i, :]) * lat_size(lat[i], 1.25)        
-        if not np.isnan(toti): tot = tot + toti
-
-    return tot
+    return openFile(fname_in, fname_out)
 
 def compare_variable(varname, limits, scaling, units):
     varname = varname[0]
