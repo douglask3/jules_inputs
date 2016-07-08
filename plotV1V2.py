@@ -6,6 +6,7 @@ import iris.plot as iplt
 import iris.quickplot as qplt
 
 import matplotlib.pyplot as plt
+from pylab import *
 import matplotlib.cm as mpl_cm
 import cartopy.crs as ccrs
 
@@ -24,7 +25,7 @@ years          = range(2000,2010)
 varnames       = [['gpp_gb'], ['cs_gb'], ['lit_c_mean'], ['npp_gb'], ['resp_l'], 
                   ['resp_p_gb'], ['resp_r'], ['resp_s'], ['resp_s_gb']]
 
-limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
+limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3, 4], [-1.5, -1, -0.5, -0.1, 0.1, 0.5, 1, 1.5]],
                   [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
                   [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
                   [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
@@ -35,7 +36,8 @@ limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
                   [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
 
 sec2year       = 60 * 60 * 24 * 365
-scaling        = [sec2year, 1, 1, sec2year, sec2year, sec2year, sec2year, sec2year]
+scaling        = [sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year]
+units          = ['PgC/yr', 'PgC', 'PgC', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr']
 
 remake_files   = False
 diagnose_lims  = True
@@ -152,7 +154,7 @@ def global_total(dat):
 
     return tot
 
-def compare_variable(varname, limits, scaling):
+def compare_variable(varname, limits, scaling, units):
     varname = varname[0]
     def open_variable(veg): 
         annual_average = openFile(veg, varname, 2000, 1)
@@ -185,7 +187,7 @@ def compare_variable(varname, limits, scaling):
     crs_proj   = ccrs.Robinson()
 
     ## Plot maps
-    def plot_map(fname, cmap, limits, title, ssp):
+    def plot_map(fname, cmap, limits, title, ssp, extend = 'max'):
         if len(fname) == 2: 
             plotable = [iris.load_cube(i) for i in fname]
             plotable = plotable[1] - plotable[0]
@@ -198,28 +200,37 @@ def compare_variable(varname, limits, scaling):
         ax.gridlines(crs = crs_latlon, linestyle = '--')
         
         if diagnose_lims: limits = 10      
-        qplt.contourf(plotable[0], limits, cmap = cmap)
+        qplt.contourf(plotable[0], limits, cmap = cmap, extend = extend)
         plt.gca().coastlines()
         plt.title(title)
     
     fig = plt.figure(figsize=(12, 8))
+    fig.suptitle(varname, fontsize=20)
+    
     cmap =  brewer_cmap = mpl_cm.get_cmap('brewer_YlGn_09')
     dcmap =  brewer_cmap = mpl_cm.get_cmap('brewer_PRGn_11')
     plot_map(aa1, cmap, limits[0], 'Veg1', 1)
     plot_map(aa2, cmap, limits[0], 'Veg2', 2)
-    plot_map([aa1, aa2], dcmap, limits[1], 'Difference',     3)
+    plot_map([aa1, aa2], dcmap, limits[1], 'Difference',     3, 'both')
 
     iplt.citation(git)
 
     ## line plot
     ax = fig.add_subplot(224)
     t = np.arange(years[0], years[-1] + 1, 1.0/12.0)
-
+    
     ax.get_xaxis().get_major_formatter().set_scientific(False)
-    plt.plot(t, ts1, 'r', t, ts2, 'b--')
+
+    plt.plot(t, ts1, 'r', label="Veg 1")
+    plt.plot(t, ts2, 'b--', label="Veg 2")
+    #plt.plot(t, ts1, 'r', t, ts2, 'b--')
+    plt.ylabel(units)
+
+    plt.legend(bbox_to_anchor=(0., 0.898, 1., .102), loc=3,
+           ncol=2, mode="expand", borderaxespad=0.)
 
     fig_name = 'figs/' + varname + '_veg2-veg1_comparison.pdf'
     plt.savefig(fig_name, bbox_inches='tight')
 
 
-for v, l, s in zip(varnames, limits, scaling): compare_variable(v, l, s)
+for v, l, s, u in zip(varnames, limits, scaling, units): compare_variable(v, l, s, u)
