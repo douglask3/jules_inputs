@@ -1,5 +1,8 @@
-from   netCDF4 import Dataset
+from netCDF4 import Dataset
+import numpy as np
 from libs.grid_funs import coor_range
+from os.path import isfile
+from libs.min_diff_sequance import *
 
 def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = True):
     nc    = Dataset(fname_in,  "r+", format = "NETCDF4")
@@ -26,7 +29,7 @@ def open_and_regrid_file(fname_in, fname_out, varname, Fun = sum, perLength = Tr
 
     return output_file(fname_out, varname, dat_variable, lat_variable, lon_variable)
 
-def open_file(fname_in, fname_out):    
+def open_file(fname_in, fname_out, varname, remake_files = False):    
     print(fname_in)
     if not remake_files and isfile(fname_out):
         nc  = Dataset(fname_out,  "r+", format = "NETCDF4")
