@@ -10,10 +10,7 @@ from   pylab             import *
 import matplotlib.cm     as mpl_cm
 import cartopy.crs       as ccrs
 
-from os.path import isfile
-
 from libs                   import git_info
-from libs.min_diff_sequance import *
 from libs.grid_funs         import * #coor_range, lat_size, global_total
 from libs.jules_file_man    import * #open_and_regrid_file, output_file
 
@@ -43,7 +40,7 @@ sec2year       = 60 * 60 * 24 * 365
 scaling        = [sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year]
 units          = ['PgC/yr', 'PgC', 'PgC', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr']
 
-remake_files   = False
+remake_files   = True
 diagnose_lims  = True
 ###############################################
 ## Open stuff                                ##
@@ -52,18 +49,18 @@ def loadFile(veg, varname, year, month):
     m = str(month) if month > 9 else '0' + str(month)
     fname_in  = raw_output_dir + veg + '/' + file_names + str(year) + m + '.nc'
     fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'
-    return openFile(fname_in, fname_out)
+    return open_file(fname_in, fname_out, varname, remake_files)
 
 def compare_variable(varname, limits, scaling, units):
     varname = varname[0]
     def open_variable(veg): 
-        annual_average = openFile(veg, varname, 2000, 1)
+        annual_average = loadFile(veg, varname, 2000, 1)
         annual_average[:,:,:] = 0.0
         TS = np.zeros([len(years)*12])
         t   = 0
         for y in years:
             for m in range(1,13):
-                dat = openFile(veg, varname, y, m)
+                dat = loadFile(veg, varname, y, m)
                 annual_average = annual_average + dat
                 TS[t] = global_total(dat)
                 t = t + 1
@@ -99,9 +96,9 @@ def compare_variable(varname, limits, scaling, units):
         ax.coastlines(linewidth = 0.75, color = 'navy')
         ax.gridlines(crs = crs_latlon, linestyle = '--')
         
-        if diagnose_lims: limits = 10      
-        qplt.contourf(plotable[0], limits, cmap = cmap, extend = extend)
-        plt.gca().coastlines()
+        if diagnose_lims: limits = 10     
+        plt.gca().coastlines() 
+        qplt.contourf(plotable[0], limits, cmap = cmap, extend = extend)       
         plt.title(title)
     
     fig = plt.figure(figsize=(12, 8))
