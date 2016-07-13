@@ -17,14 +17,14 @@ from libs.jules_file_man    import * #open_and_regrid_file, output_file
 from pdb import set_trace as browser
 
 # Define paths and parameters
-raw_output_dir = "outputs/jules3/"
+raw_output_dir = "outputs/jules/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
 years          = range(2000,2010)
 
-varnames       = [['resp_r'], ['gpp_gb'], ['cs_gb'], ['lit_c_mean'], ['npp_gb'], ['resp_l'], 
-                  ['resp_p_gb'], ['resp_s'], ['resp_s_gb']]
+varnames       = [['gpp_gb'], ['cs_gb'], ['lit_c_mean'], ['npp_gb'], ['resp_l'], 
+                  ['resp_p_gb'], ['resp_r'], ['resp_s'], ['resp_s_gb']]
 
 limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3, 4], [-1.5, -1, -0.5, -0.1, 0.1, 0.5, 1, 1.5]], #gpp_b
                   [[0.0, 1, 5, 10, 20, 30, 40], [-20, -16, -8, -4, -1, 1, 4, 8, 16, 20]],        #cs_gb
@@ -43,28 +43,28 @@ sec2year       = 60 * 60 * 24 * 365
 scaling        = [sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year]
 units          = ['PgC/yr', 'PgC', 'PgC', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr']
 
-remake_files   = False
+remake_files   = True
 diagnose_lims  = True
 ###############################################
 ## Open stuff                                ##
 ###############################################
-def loadFile(veg, varname, year, month):
+def loadFile(veg, varname, year, month, **kwargs):
     m = str(month) if month > 9 else '0' + str(month)
     fname_in  = raw_output_dir + veg + '/' + file_names + str(year) + m + '.nc'
     fname_out = arr_output_dir + veg + '_' + file_names + varname + str(year) + m + '.nc'
-    return open_file(fname_in, fname_out, varname, remake_files)
+    return open_file(fname_in, fname_out, varname, remake_files, **kwargs)
 
 def compare_variable(varname, limits, scaling, units):
     varname = varname[0]
     def open_variable(veg): 
-        annual_average = loadFile(veg, varname, 2000, 1)
+        annual_average, grid = loadFile(veg, varname, 2000, 1)
             
         annual_average[:,:,:] = 0.0
         TS = np.zeros([len(years)*12])
         t   = 0
         for y in years:
             for m in range(1,13):
-                dat = loadFile(veg, varname, y, m)
+                dat, nn = loadFile(veg, varname, y, m, grid = grid)
                 annual_average = annual_average + dat
                 TS[t] = global_total(dat)
                 t = t + 1
