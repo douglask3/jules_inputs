@@ -17,30 +17,33 @@ from libs.jules_file_man    import * #open_and_regrid_file, output_file
 from pdb import set_trace as browser
 
 # Define paths and parameters
-raw_output_dir = "outputs/jules/"
+raw_output_dir = "outputs/jules3/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
 years          = range(2000,2010)
 
-varnames       = [['gpp_gb'], ['cs_gb'], ['lit_c_mean'], ['npp_gb'], ['resp_l'], 
-                  ['resp_p_gb'], ['resp_r'], ['resp_s'], ['resp_s_gb']]
+varnames       = [['resp_r'], ['gpp_gb'], ['cs_gb'], ['lit_c_mean'], ['npp_gb'], ['resp_l'], 
+                  ['resp_p_gb'], ['resp_s'], ['resp_s_gb']]
 
-limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3, 4], [-1.5, -1, -0.5, -0.1, 0.1, 0.5, 1, 1.5]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],
-                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]
+limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3, 4], [-1.5, -1, -0.5, -0.1, 0.1, 0.5, 1, 1.5]], #gpp_b
+                  [[0.0, 1, 5, 10, 20, 30, 40], [-20, -16, -8, -4, -1, 1, 4, 8, 16, 20]],        #cs_gb
+                  [[0.0, 0.1, 0.5, 1, 1.5, 2, 2.5, 3], [-3, -2, -1, 1, 2, 3]],                  #lit_c_mean
+                  [[-20, -15, -10, -5, -2, 1, 0.1, 0.2, 0.5,  1, 1.5, 2], [-0.01, 0.01]],       #npp_gb
+                  [[0, 0.1, 0.5, 1, 2, 5, 10, 20, 50],
+                        [-50, -20, -10, -5, -1, -0.1, 0.1, 1, 5, 10, 20, 50]],                  #resp_l
+                  [[0.0, 0.01, 0.05, 1, 0.1, 0.2, 0.3, 0.4],
+                        [-0.16, -0.12, -0.08, -0.04, 0.04, 0.08, 0.12, 0.16]],                  #resp_p_gb
+                  [[0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4], 
+                        [-0.16, -0.12, -0.08, -0.04, 0.04, 0.08, 0.12, 0.16]],                  #resp_r 
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]],                               #resp_s
+                  [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]                               #resp_s_gb
 
 sec2year       = 60 * 60 * 24 * 365
 scaling        = [sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year]
 units          = ['PgC/yr', 'PgC', 'PgC', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr']
 
-remake_files   = True
+remake_files   = False
 diagnose_lims  = True
 ###############################################
 ## Open stuff                                ##
@@ -55,6 +58,7 @@ def compare_variable(varname, limits, scaling, units):
     varname = varname[0]
     def open_variable(veg): 
         annual_average = loadFile(veg, varname, 2000, 1)
+            
         annual_average[:,:,:] = 0.0
         TS = np.zeros([len(years)*12])
         t   = 0
@@ -90,7 +94,8 @@ def compare_variable(varname, limits, scaling, units):
             plotable = plotable[1] - plotable[0]
         else:
             plotable = iris.load_cube(fname)
-        
+       
+        browser() 
         ax = fig.add_subplot(2, 2, ssp, projection = crs_proj)
         ax.set_extent((-180, 170, -65, 90.0), crs = crs_latlon)
         ax.coastlines(linewidth = 0.75, color = 'navy')
