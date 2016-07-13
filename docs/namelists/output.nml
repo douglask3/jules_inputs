@@ -26,6 +26,6 @@ output_spinup=.false.,
 output_type=10*'M',
 profile_name='fluxes',
 var='npp_gb','gpp_gb','cs_gb','resp_p_gb','resp_s_gb','resp_l','resp_r',
-'resp_w','resp_s','lit_c_mean',
+'resp_w','resp_s','lit_c_mean','frac',
 var_name='',
 /
