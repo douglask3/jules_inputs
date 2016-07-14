@@ -17,7 +17,7 @@ from libs.jules_file_man    import * #open_and_regrid_file, output_file
 from pdb import set_trace as browser
 
 # Define paths and parameters
-raw_output_dir = "outputs/jules/"
+raw_output_dir = "outputs/jules3/"
 arr_output_dir = "outputs/regridded/"
 veg_dir        = ["veg1", "veg2"]
 file_names     = "gswp3.fluxes."
@@ -40,10 +40,10 @@ limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3, 4], [-1.5, -1, -0.5, -0.1, 0.1,
                   [[0.0, 0.5, 1, 1.5, 2, 2.5, 3], [-0.01, 0.01]]]                               #resp_s_gb
 
 sec2year       = 60 * 60 * 24 * 365
-scaling        = [sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year]
+scaling        = [ sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year]
 units          = ['PgC/yr', 'PgC', 'PgC', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr', 'PgC/yr']
 
-remake_files   = True
+remake_files   = False
 diagnose_lims  = True
 ###############################################
 ## Open stuff                                ##
@@ -86,7 +86,32 @@ def compare_variable(varname, limits, scaling, units):
     git = 'repo: ' + git_info.url + '\n' + 'rev:  ' + git_info.rev
     crs_latlon = ccrs.PlateCarree()
     crs_proj   = ccrs.Robinson()
-
+    
+    nz = iris.load_cube(aa1).shape[0]
+    if  nz== 5:
+        figsize = (28, 12)
+        fontsize = 16
+        px = 3
+        py = 5
+        labs = [['BL'],['NL'],['C3'],['C4'],['Shrub']]
+        ndiagnose_lims = 6
+    elif nz == 4:
+        figsize = (20, 12)
+        fontsize = 16
+        px = 3
+        py = 4
+        labs =[['DPM'], ['RPM'], ['BIO'], ['HUM']]
+        ndiagnose_lims = 6
+    elif nz == 1:
+        figsize = (12, 8)
+        fontsize = 20
+        px = 2
+        py = 2    
+        labs = [['']]
+        ndiagnose_lims = 10
+    else:
+        browser()
+    
     ## Plot maps
     def plot_map(fname, cmap, limits, title, ssp, extend = 'max'):
         if len(fname) == 2: 
@@ -95,21 +120,29 @@ def compare_variable(varname, limits, scaling, units):
         else:
             plotable = iris.load_cube(fname)
        
-        browser() 
-        ax = fig.add_subplot(2, 2, ssp, projection = crs_proj)
-        ax.set_extent((-180, 170, -65, 90.0), crs = crs_latlon)
-        ax.coastlines(linewidth = 0.75, color = 'navy')
-        ax.gridlines(crs = crs_latlon, linestyle = '--')
+        nz = iris.load_cube(aa1).shape[0]
+        ssp = (ssp - 1) * nz 
+        for i in range(0, nz):
+            ssp =  ssp + 1
+            print(ssp)
+
+            ax = fig.add_subplot(px, py, ssp, projection = crs_proj)
+            ax.set_extent((-180, 170, -65, 90.0), crs = crs_latlon)
+            ax.coastlines(linewidth = 0.5, color = 'navy')
+            ax.gridlines(crs = crs_latlon, linestyle = '--')
+            
+            if diagnose_lims: limits = ndiagnose_lims     
+            plt.gca().coastlines() 
+            qplt.contourf(plotable[i], limits, cmap = cmap, extend = extend) 
+            
+            titlei = title + labs[i][0]  
+            plt.title(titlei)
+
         
-        if diagnose_lims: limits = 10     
-        plt.gca().coastlines() 
-        qplt.contourf(plotable[0], limits, cmap = cmap, extend = extend)       
-        plt.title(title)
+    fig = plt.figure(figsize = figsize)
+    fig.suptitle(varname, fontsize = fontsize)
     
-    fig = plt.figure(figsize=(12, 8))
-    fig.suptitle(varname, fontsize=20)
-    
-    cmap =  brewer_cmap = mpl_cm.get_cmap('brewer_YlGn_09')
+    cmap  =  brewer_cmap = mpl_cm.get_cmap('brewer_YlGn_09')
     dcmap =  brewer_cmap = mpl_cm.get_cmap('brewer_PRGn_11')
     plot_map(aa1, cmap, limits[0], 'Veg1', 1)
     plot_map(aa2, cmap, limits[0], 'Veg2', 2)
@@ -118,21 +151,22 @@ def compare_variable(varname, limits, scaling, units):
     iplt.citation(git)
 
     ## line plot
-    ax = fig.add_subplot(224)
-    t = np.arange(years[0], years[-1] + 1, 1.0/12.0)
+    if nz == 1:
+        ax = fig.add_subplot(224)
+        t = np.arange(years[0], years[-1] + 1, 1.0/12.0)
     
-    ax.get_xaxis().get_major_formatter().set_scientific(False)
+        ax.get_xaxis().get_major_formatter().set_scientific(False)
 
-    plt.plot(t, ts1, 'r', label="Veg 1")
-    plt.plot(t, ts2, 'b--', label="Veg 2")
-    #plt.plot(t, ts1, 'r', t, ts2, 'b--')
-    plt.ylabel(units)
+        plt.plot(t, ts1, 'r', label="Veg 1")
+        plt.plot(t, ts2, 'b--', label="Veg 2")
+        #plt.plot(t, ts1, 'r', t, ts2, 'b--')
+        plt.ylabel(units)
 
-    plt.legend(bbox_to_anchor=(0., 0.898, 1., .102), loc=3,
-           ncol=2, mode="expand", borderaxespad=0.)
+        plt.legend(bbox_to_anchor=(0., 0.898, 1., .102), loc=3,
+            ncol=2, mode="expand", borderaxespad=0.)
 
     fig_name = 'figs/' + varname + '_veg2-veg1_comparison.pdf'
-    plt.savefig(fig_name, bbox_inches='tight')
+    plt.savefig(fig_name, bbox_inches = 'tight')
 
 
 for v, l, s, u in zip(varnames, limits, scaling, units): compare_variable(v, l, s, u)
