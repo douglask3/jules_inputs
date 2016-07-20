@@ -8,8 +8,10 @@ import iris
 import matplotlib.pyplot as plt
 import iris.plot as iplt
 import numpy as np
-from os import listdir, getcwd
+from netCDF4 import Dataset
+from os import listdir, getcwd, mkdir, path
 from pdb import set_trace
+from libs import git_info
 
 execfile(cfg)
 
@@ -33,28 +35,42 @@ mask.coord("longitude").coord_system=None
 ###############################################
 drive_date = []
 fnames = []
+
+info = ('Regridded to gc3_orca1_mask using ' + git_info.url +  
+        ', rev number ' + git_info.rev + 
+        ' by Douglas Kelley, douglas.i.kelley@gmail.com')
+
 for input_file in listdir(root_dir + clim_dir):
     if input_file == 'GSWP3.BC.SWdown.3hrMap.2010.N96e.nc': continue
     
     ## Cal filenames
-    output_file = outp_dir + "regridded_" + input_file
+    
     file = root_dir + clim_dir + input_file
     print(file)
    
     ## load cube
     cube = iris.load_cube( file) 
     date = str(cube.coord('time')[0])[10:29]
+
+    output_dir  = outp_dir + cube.var_name + "/"
+    output_file = output_dir + "regridded_" + input_file
     
     ## Find new drive_file entry
     if date not in drive_date: 
         drive_date.append(date)
-        fname = '%vv'.join(output_file.split(cube.var_name))
+        fname = '%vv/%vv'.join(output_file.split(cube.var_name))
         fnames.append(fname) 
-   
-    
-    ## Regrid and ouput climate
+
+
+    ## Regrid and output climate
     output_data = cube.regrid( mask, iris.analysis.Nearest())
+    
+    if not path.isdir(output_dir): mkdir(output_dir)
     iris.save(output_data, output_file)
+    
+    output = Dataset(output_file, 'r+', format='NETCDF4')
+    output.regridding = info
+    output.close()
 
 ## Output drive_file
 drive_date = sorted(drive_date)
