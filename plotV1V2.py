@@ -47,7 +47,7 @@ limits         = [[[0.0, 0.5, 1, 1.5, 2, 2.5, 3, 4], [-1.5, -1, -0.5, -0.1, 0.1,
 
 sec2year       = 60 * 60 * 24 * 365
 scaling        = [ sec2year, 1    , 1    , sec2year, sec2year, sec2year, sec2year, sec2year, sec2year]
-units          = ['PgC/yr', 'PgC', 'PgC', 'PgC/yr', 'PgC/yr', 'PgC/yr',  'PgC/yr', 'PgC/yr', 'PgC/yr']
+units          = ['PgC/mon', 'PgC', 'PgC', 'PgC/mon', 'PgC/mon', 'PgC/mon',  'PgC/mon', 'PgC/mon', 'PgC/mon']
 
 remake_files   = False
 diagnose_lims  = True
