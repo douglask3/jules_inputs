@@ -11,10 +11,12 @@ import numpy as np
 from os import listdir, getcwd
 from pdb import set_trace
 
+execfile(cfg)
+
 # Define paths and parameters
 root_dir = "data/"
 clim_dir = "half_deg_files/"
-outp_dir = "outputs/"
+outp_dir = clim_output_dir
 
 ###############################################
 ## Load mask and remove coordinate system    ##
@@ -48,7 +50,8 @@ for input_file in listdir(root_dir + clim_dir):
         drive_date.append(date)
         fname = '%vv'.join(output_file.split(cube.var_name))
         fnames.append(fname) 
-
+   
+    
     ## Regrid and ouput climate
     output_data = cube.regrid( mask, iris.analysis.Nearest())
     iris.save(output_data, output_file)
